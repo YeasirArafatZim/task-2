@@ -11,7 +11,7 @@ var books = [
 
 var authors = [
     { author_id: "1", author_name: 'Rahim', country: 'Bangladesh' },
-    { author_id: "2", author_name: 'Karim', country: 'Bangladesh' },
+    { author_id: "2", author_name: 'J. K Rowling', country: 'Bangladesh' },
     { author_id: "3", author_name: 'Rahul', country: 'Bangladesh' },
     { author_id: "4", author_name: 'Shorkar', country: 'India' }
 ]
@@ -33,12 +33,14 @@ const BookType = new GraphQLObjectType({
     })
 });
 
+
 const AuthorType = new GraphQLObjectType({
     name: 'Author',
     fields: () => ({
         author_id: { type: GraphQLID },
         author_name: { type: GraphQLString },
         country: { type: GraphQLString },
+
     })
 });
 
@@ -60,6 +62,13 @@ const PublishedBookType = new GraphQLObjectType({
         },
         publication_date: { type: GraphQLString }
 
+    })
+});
+
+const CountType = new GraphQLObjectType({
+    name: 'Count',
+    fields: () => ({
+        numberOfBooks: { type: GraphQLInt }
     })
 });
 
@@ -90,10 +99,32 @@ const RootQuery = new GraphQLObjectType({
                 return _.find(publishedBooks, { publication_id: args.publication_id });
             }
         },
-        books: {
-            type: new GraphQLList(AuthorType),
+        authors: {
+            type: new GraphQLList(BookType),
+            args: { country: { type: GraphQLString } },
             resolve(parent, args) {
-                return _.filter(authors, { country: 'Bangladesh' });
+                return _.filter(authors, { country: args.country });
+            }
+        },
+        authorBooks: {
+            type: new GraphQLList(BookType),
+            args: { author_id: { type: GraphQLID } },
+            resolve(parent, args) {
+                var pBooks = _.filter(publishedBooks, { author_id: args.author_id });
+                //console.log(pBooks[1].book_id);
+                let aBooks = [];
+                for (let i = 0; i < pBooks.length; i++) {
+                    aBooks.push(_.find(books, { book_id: pBooks[i].book_id }));
+                }
+                return aBooks;
+            }
+        },
+        authorBooksCount: {
+            type: CountType,
+            args: { author_id: { type: GraphQLID } },
+            resolve(parent, args) {
+                let pBooks = _.filter(publishedBooks, { author_id: args.author_id });
+                return { numberOfBooks: parseInt(pBooks.length) };
             }
         }
 
