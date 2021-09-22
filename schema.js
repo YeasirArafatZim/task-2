@@ -102,7 +102,7 @@ const RootQuery = new GraphQLObjectType({
             }
         },
         authors: {
-            type: new GraphQLList(BookType),
+            type: new GraphQLList(AuthorType),
             args: { country: { type: GraphQLString } },
             resolve(parent, args) {
                 return _.filter(authors, { country: args.country });
